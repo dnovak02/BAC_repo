@@ -1,0 +1,6 @@
+1. Get CAF_Is_Active into true state
+2. Check Sensor_Input_Ok false state result
+3. Check Vechicle_State 'Startup' state result
+4. Check Vechicle_State 'Limp_Home' state result
+5. Check Vechicle_State 'Unknown' state result
+6. Check CAF_Timeout state result

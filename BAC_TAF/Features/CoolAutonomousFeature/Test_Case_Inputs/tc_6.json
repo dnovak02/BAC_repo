@@ -1,0 +1,1 @@
+[{"Timestamp": 20221208201447321, "Actual_Vehicle_Speed": 84, "Sensor_Input_Ok": true, "Vehicle_State": 1, "CAF_Is_Active": false, "CAF_Is_Off_Alert": 0},{"Timestamp": 20221208201449321, "Actual_Vehicle_Speed": 84, "Sensor_Input_Ok": "True", "Vehicle_State": 1, "CAF_Is_Active": "False", "CAF_Is_Off_Alert": 0}]
