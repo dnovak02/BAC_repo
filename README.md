@@ -1,26 +1,26 @@
 # BigAutomotiveCompany AG (BAC) 
 ## CoolAutonomousFeature (CAF) demo
 
-This is a proof of concept of the testframework for CoolAutonomousFeature 
+This is a proof of concept of the test automation framework for CoolAutonomousFeature 
 
-the concept of the task was based on these Framework requirement:
+the concept of the task was based on these framework requirement:
 - Initialize the test environment
-- Create a Test Automation Framework
+- Create a Test Framework
 - Creating Test data
 - Run tests thorugh a script
 - Generate test reports based on the results
 
 The requrements for this proof of concept:
-- Linux Eviroment
+- Linux Enviroment
 - Python3
 - Docker
 
 #### Test Enviroment
-The goal is to create a enviroment where it can recivce a signal input and it returns the result of the feature. 
+The goal is to create an enviroment where it can recive a signal input and it returns the result of the feature.
 The test enviroment is a docker container, where it is operates as a socket server and has the CoolAutonoumusFeatures. The reason to put it in a docker container, that the resource should be menaged in a containerised enviroment.
 The server waits for a client connection, gets the signal from the recived data, and in the CAF class evaulates the signal, and returns to the client the result.
 #### Test Framework
-In this task, the job of the test framework is, based on the gathered test case inputs, communicates through TCP with the test enviroment and gather the test results. The test framework resources should be handled seperatly same as for the test enviroment. 
+In this task, the job of the test framework is, based on the gathered test case inputs, communicates through TCP with the test enviroment and gather the test results. The test framework resources should be handled seperatly same as for the test enviroment.
 So this is also a docker container, where the "run" script operates the signal sending. It uses the socket client to send the test case inputs. After that the run script also saves the gathered results.
 #### Test Data
 The test datas are json files. These contains predefined signals that is same. Each test case has it's own inputs.
@@ -36,11 +36,9 @@ The test case script follows these steps:
 
 #### Run the script
 
-To run the test case script use it in the BAC_repo folder as:
+To run the test case script in the BAC_repo folder as:
 
 ```sh
-python3
-
-
-
+python3 test_case_script.py
+```
 
