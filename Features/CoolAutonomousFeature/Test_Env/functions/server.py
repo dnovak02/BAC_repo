@@ -23,7 +23,7 @@ def server_program():
             if not data:
                 connection_accepted = False
                 break
-            CAF_object.signal_Parsing(data)
+            CAF_object.signal_parsing(data)
             return_data = CAF_object.evaulate()
             conn.send(return_data.encode())
 

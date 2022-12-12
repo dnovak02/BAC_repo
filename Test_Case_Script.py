@@ -32,15 +32,15 @@ def print_test_case_description(BAC_filepath,result_filepath):
         print(line)
     os.system("cp "+BAC_filepath+"/Test_Case_list.txt "+result_filepath)
         
-def create_inputs_with_Projects(Project,filepath,BAC_TAF_filepath):
+def create_inputs_with_projects(project,filepath,BAC_TAF_filepath):
     for root,dir,filename in os.walk(BAC_TAF_filepath+"/Test_Case_Inputs/"):
         for file in filename:
             openedfile = open(root+"/"+file)
             json_test_case_input = json.load(openedfile)
             if(type(json_test_case_input) == list):
                 for input in json_test_case_input:
-                    input["Project"] = Project
-            else:json_test_case_input["Project"] = Project
+                    input["Project"] = project
+            else:json_test_case_input["Project"] = project
             openedfile.close()
             os.system("mkdir -p "+filepath+"/Test_Case_Inputs/")
             openedfile = open(filepath+"/Test_Case_Inputs/"+file,"w+")
@@ -51,13 +51,13 @@ def get_references(filepath,BAC_TAF_filepath):
     os.system("mkdir -p "+filepath+"/Test_Case_Reference")
     os.system("cp -r "+BAC_TAF_filepath+"/Test_Case_Reference "+filepath)
 
-def copy_Json_To_Docker(filepath):
+def copy_json_to_docker(filepath):
     os.system("docker cp "+filepath+"/Test_Case_Inputs bac_taf:/TAF/Test_Cases")
     
-def prepare_test_case_run(Project,filepath,BAC_TAF_filepath):
-    create_inputs_with_Projects(Project,filepath,BAC_TAF_filepath)
+def prepare_test_case_run(project,filepath,BAC_TAF_filepath):
+    create_inputs_with_projects(project,filepath,BAC_TAF_filepath)
     get_references(filepath,BAC_TAF_filepath)
-    copy_Json_To_Docker(filepath)
+    copy_json_to_docker(filepath)
     
 def start_containers(Feature):
     os.system("docker build -t test_env ./Features/"+Feature+"/")
@@ -66,7 +66,7 @@ def start_containers(Feature):
     os.system("docker build -t bac_taf ./BAC_TAF/Features/"+Feature+"/container")
     os.system("docker run -td --network=host --name=bac_taf docker.io/bac_taf:latest")
 
-def run():
+def run_script():
     os.system("docker exec bac_taf ./run.py")
 
 def get_result(filepath):
@@ -76,12 +76,12 @@ def get_result(filepath):
 def create_report(filepath):
     os.system("touch "+filepath+"/test_report.txt")
 
-def get_Json_List(filepath,foldername):
+def get_json_list(filepath,foldername):
     for root,dir,filename in os.walk(filepath+foldername):
         filename.sort()
         return filename
     
-def load_Json_file(filepath,foldername,jsonname):
+def load_json_file(filepath,foldername,jsonname):
     json_file_Open = open(filepath+foldername+jsonname)
     json_loaded = json.load(json_file_Open)
     return json_loaded
@@ -93,22 +93,22 @@ def check_result_success(json_result,json_reference):
             result_passed +=1
     if(result_passed == len(json_result)):
         return True
-    else: return False
+    return False
     
 def write_to_test_case_report(filepath,what_to_write):
     openedfile = open(filepath+"/test_report.txt","a")
     openedfile.write(what_to_write)
     openedfile.close()
     
-def Test_result_evaulation(filepath):
+def test_result_evaulation(filepath):
     create_report(filepath)
-    tc_result_list = get_Json_List(filepath,"/Test_Case_Result/")
-    tc_ref_list = get_Json_List(filepath,"/Test_Case_Reference/")
+    tc_result_list = get_json_list(filepath,"/Test_Case_Result/")
+    tc_ref_list = get_json_list(filepath,"/Test_Case_Reference/")
     successful_tcs = 0
     max_tcs = len(tc_result_list)
     for i in range(max_tcs):
-        json_result = load_Json_file(filepath,"/Test_Case_Result/",tc_result_list[i])
-        json_reference = load_Json_file(filepath,"/Test_Case_Reference/",tc_ref_list[i])
+        json_result = load_json_file(filepath,"/Test_Case_Result/",tc_result_list[i])
+        json_reference = load_json_file(filepath,"/Test_Case_Reference/",tc_ref_list[i])
         if(check_result_success(json_result,json_reference)):
             print("Test case "+str(i+1)+"\033[92m"+" passed!"+"\033[0m")
             successful_tcs += 1
@@ -123,16 +123,21 @@ def Test_result_evaulation(filepath):
         print("Test case senario were"+"\033[93m"+" unsuccesful!"+"\033[0m"+" check the test_report.")
         os.system("mv "+filepath+" "+filepath+"_F")
         
-now = datetime.now()
-dt_String = now.strftime("%d%m%Y%H%M%S")
-Feature = get_item_chosen("./Features","Feature")
-Project = get_item_chosen("./Features/"+Feature+"/Test_Env/Projects/","Project")
-Test_Results_filepath = "Results/"+Feature+"/"+Project+"/"+dt_String
-BAC_TAF_filepath = "BAC_TAF/Features/"+Feature
-os.system("mkdir -p "+Test_Results_filepath)
-print_test_case_description(BAC_TAF_filepath,Test_Results_filepath)
-start_containers(Feature)
-prepare_test_case_run(Project,Test_Results_filepath,BAC_TAF_filepath)
-run()
-get_result(Test_Results_filepath)
-Test_result_evaulation(Test_Results_filepath)
+def docker_remove():
+    os.system("docker rm -f bac_taf")
+    os.system("docker rm -f test_env")
+        
+current_time = datetime.now()
+current_time_string = current_time.strftime("%d%m%Y%H%M%S")
+feature = get_item_chosen("./Features","Feature")
+project = get_item_chosen("./Features/"+feature+"/Test_Env/Projects/","Project")
+test_results_filepath = "Results/"+feature+"/"+project+"/"+current_time_string
+BAC_TAF_filepath = "BAC_TAF/Features/"+feature
+os.system("mkdir -p "+test_results_filepath)
+print_test_case_description(BAC_TAF_filepath,test_results_filepath)
+start_containers(feature)
+prepare_test_case_run(project,test_results_filepath,BAC_TAF_filepath)
+run_script()
+get_result(test_results_filepath)
+test_result_evaulation(test_results_filepath)
+#docker_remove()

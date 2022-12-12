@@ -1,12 +1,11 @@
 import socket
 import json
+import time
 
 def send_signal(client_socket,message):
     client_socket.send(message.encode())
-    data_not_arrived = True
-    while data_not_arrived:
-        data = client_socket.recv(1024).decode()
-        data_not_arrived = False
+    time.sleep(0.5)
+    data = client_socket.recv(1024).decode()
     return data
 
 def client_program(json_signal):

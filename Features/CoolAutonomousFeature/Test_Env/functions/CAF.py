@@ -4,23 +4,26 @@ import json
 
 class CAF:
     
-    Actual_Vehicle_Speed = 0
-    Sensor_Input_Ok = False
-    Vehicle_State = 0
-    CAF_Is_Active = False
-    CAF_Is_Off_Alert = 0
-    CAF_Vehicle_Speed_Limit = 0
-    CAF_TimeOut = 0
+    actual_vehicle_speed = 0
+    sensor_input_ok = False
+    vehicle_state = 0
+    caf_is_active = False
+    caf_is_off_alert = 0
     
-    Over_CAF_Vehicle_Speed_Limit = False
-    Prev_Over_CAF_Vechicle_Speed_Limit = False
-    Speed_Limit_Timestamp = 0
-    Current_Timestamp = 0
+    caf_vehicle_speed_limit = 0
+    caf_time_out = 0
+    
+    over_caf_speed_limit = False
+    prev_over_caf_speed_limit = False
+    speed_limit_timestamp = 0
+    current_timestamp = 0
+    
+    
     
     def __init__(self):
         pass
     
-    def get_Config_Data(self,config_name):
+    def get_config_data(self,config_name):
         directory = './Projects'
         config = []
         for filename in os.scandir(directory):
@@ -30,67 +33,69 @@ class CAF:
         return config
     
     def wrap_up_json(self):
-        CAF_Result_Dict = {}
-        CAF_Result_Dict["CAF_Is_Active"] = self.CAF_Is_Active
-        CAF_Result_Dict["CAF_Is_Off_Alert"] = self.CAF_Is_Off_Alert
-        return json.dumps(CAF_Result_Dict)
+        caf_result_dict = {}
+        caf_result_dict["CAF_Is_Active"] = self.caf_is_active
+        caf_result_dict["CAF_Is_Off_Alert"] = self.caf_is_off_alert
+        return json.dumps(caf_result_dict)
     
-    def config_Setup(self,config_name):
-        config=self.get_Config_Data(config_name)
-        self.CAF_Vehicle_Speed_Limit = int(config["CAF_Vehicle_Speed_Limit"])
-        self.CAF_TimeOut = int(config["CAF_TimeOut"])
+    def config_setup(self,config_name):
+        config=self.get_config_data(config_name)
+        self.caf_vehicle_speed_limit = int(config["CAF_Vehicle_Speed_Limit"])
+        self.caf_time_out = int(config["CAF_TimeOut"])
         
-    def signal_Parsing(self,signal_string):
+    def signal_parsing(self,signal_string):
         signal=json.loads(signal_string)
         
-        self.config_Setup(signal["Project"])
+        self.config_setup(signal["Project"])
         
-        self.Actual_Vehicle_Speed=int(signal["Actual_Vehicle_Speed"])
-        self.Sensor_Input_Ok=bool(signal["Sensor_Input_Ok"])
-        self.Vehicle_State=int(signal["Vehicle_State"])
-        self.Current_Timestamp=signal["Timestamp"]
+        self.actual_vehicle_speed=int(signal["Actual_Vehicle_Speed"])
+        self.sensor_input_ok=bool(signal["Sensor_Input_Ok"])
+        self.vehicle_state=int(signal["Vehicle_State"])
+        self.current_timestamp=signal["Timestamp"]
         
-    def check_Speed_Limit(self):
-        if(self.CAF_Vehicle_Speed_Limit>=self.Actual_Vehicle_Speed*3.6):
-            self.Over_CAF_Vehicle_Speed_Limit = False
-        else: self.Over_CAF_Vehicle_Speed_Limit = True
+    def check_speed_limit(self):
+        if(self.caf_vehicle_speed_limit>=self.actual_vehicle_speed*3.6):
+            self.over_caf_speed_limit = False
+        else:
+            self.over_caf_speed_limit = True
         
-    def check_Limit_Time(self):
-        if(not self.Over_CAF_Vehicle_Speed_Limit):
+    def check_limit_time(self):
+        if(not self.over_caf_speed_limit):
             self.Speed_Limit_Timestamp = 0
-        if(not self.Prev_Over_CAF_Vechicle_Speed_Limit and self.Over_CAF_Vehicle_Speed_Limit):
-            self.Speed_Limit_Timestamp = self.Current_Timestamp
-            self.Prev_Over_CAF_Vechicle_Speed_Limit = True
+            self.prev_over_caf_speed_limit = False
+        if(not self.prev_over_caf_speed_limit and self.over_caf_speed_limit):
+            self.Speed_Limit_Timestamp = self.current_timestamp
+            self.prev_over_caf_speed_limit = True
             return False
-        if(self.Prev_Over_CAF_Vechicle_Speed_Limit and self.Over_CAF_Vehicle_Speed_Limit):
-            if(self.Current_Timestamp-self.Speed_Limit_Timestamp>self.CAF_TimeOut):
+        if(self.prev_over_caf_speed_limit and self.over_caf_speed_limit):
+            if(self.current_timestamp-self.speed_limit_timestamp>self.caf_time_out):
                 return True
         return False
                 
-    def check_Sensor_Input_OK(self):
-        if not self.Sensor_Input_Ok:
+    def check_sensor_input_ok(self):
+        if self.sensor_input_ok:
             return True
         return False
     
-    def check_Vehicle_State(self):
-        if(not self.Vehicle_State==1):
+    def check_vehicle_state(self):
+        if(self.vehicle_state==1):
             return True
         return False
     
-    def set_Fault_Event(self):
-        self.CAF_Is_Active = False
-        self.CAF_Is_Off_Alert = 2
+    def set_fault_event(self):
+        self.caf_is_active = False
+        self.caf_is_off_alert = 2
     
-    def check_Fault_Event(self):
-        if(self.check_Limit_Time() or self.check_Sensor_Input_OK() or self.check_Vehicle_State()):
-            self.set_Fault_Event()
+    def check_fault_event(self):
+        if(self.check_limit_time() or not self.check_sensor_input_ok() or not self.check_vehicle_state()):
+            self.set_fault_event()
 
-    def check_CAF_Active(self):
-        if(not self.Over_CAF_Vehicle_Speed_Limit and self.Sensor_Input_Ok and self.Vehicle_State==1):
-            self.CAF_Is_Active = True
+    def check_caf_active(self):
+        if(not self.over_caf_speed_limit and self.check_sensor_input_ok() and self.check_vehicle_state()):
+            self.caf_is_active = True
             
     def evaulate(self):
-        self.check_Speed_Limit()
-        self.check_CAF_Active()
-        self.check_Fault_Event()
+        self.check_speed_limit()
+        self.check_caf_active()
+        self.check_fault_event()
         return self.wrap_up_json()
